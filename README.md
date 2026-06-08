@@ -2,6 +2,8 @@
 
 A full-stack todo application with JWT authentication and role-based access control.
 
+![TaskFlow Screenshot](./screenshot.png)
+
 ## Tech Stack
 
 - **Frontend:** React 19, Vite, Tailwind CSS v4
