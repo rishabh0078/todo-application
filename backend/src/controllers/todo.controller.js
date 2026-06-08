@@ -23,14 +23,16 @@ const createTodo = async (req, res) => {
   }
 
   try {
-    const { title, description, dueDate, category } = req.body
+    const { title, description, dueDate, category, user } = req.body
+
+    const assignedUser = (req.user.role === 'admin' && user) ? user : req.user.id
 
     const todo = await Todo.create({
       title,
       description,
       dueDate,
       category,
-      user: req.user.id,
+      user: assignedUser,
     })
 
     await todo.populate('user', 'username email')
@@ -60,7 +62,12 @@ const updateTodo = async (req, res) => {
       return res.status(403).json({ message: 'Access denied' })
     }
 
-    const updated = await Todo.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate('user', 'username email')
+    const updateData = { ...req.body }
+    if (req.user.role !== 'admin') {
+      delete updateData.user
+    }
+
+    const updated = await Todo.findByIdAndUpdate(req.params.id, updateData, { new: true }).populate('user', 'username email')
 
     res.json(updated)
   } catch (err) {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import { useToast } from '../hooks/useToast'
+import { useAuth } from '../hooks/useAuth'
 import api from '../api/axiosInstance'
 import Navbar from '../components/common/Navbar'
 import Input from '../components/common/Input'
@@ -11,7 +12,7 @@ const CATEGORY_OPTIONS = [
   { value: 'Urgent', label: 'Urgent' },
 ]
 
-const EMPTY_FORM = { title: '', description: '', dueDate: '', category: 'Non-Urgent' }
+const EMPTY_FORM = { title: '', description: '', dueDate: '', category: 'Non-Urgent', user: '' }
 
 export default function TodoFormPage() {
   const { id } = useParams()
@@ -22,9 +23,13 @@ export default function TodoFormPage() {
   const isEditing = Boolean(id)
   const existingTodo = state?.todo
 
+  const { user: currentUser } = useAuth()
+  const isAdmin = currentUser?.role === 'admin'
+
   const [form, setForm] = useState(EMPTY_FORM)
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
+  const [users, setUsers] = useState([])
 
   useEffect(() => {
     if (isEditing && existingTodo) {
@@ -33,9 +38,24 @@ export default function TodoFormPage() {
         description: existingTodo.description || '',
         dueDate: existingTodo.dueDate ? existingTodo.dueDate.slice(0, 10) : '',
         category: existingTodo.category || 'Non-Urgent',
+        user: existingTodo.user?._id || existingTodo.user || '',
       })
+    } else if (currentUser) {
+      setForm((prev) => ({ ...prev, user: currentUser.id || '' }))
     }
-  }, [isEditing, existingTodo])
+  }, [isEditing, existingTodo, currentUser])
+
+  useEffect(() => {
+    if (isAdmin) {
+      api.get('/admin/users')
+        .then((res) => {
+          setUsers(res.data)
+        })
+        .catch((err) => {
+          console.error('Failed to load users:', err)
+        })
+    }
+  }, [isAdmin])
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
@@ -64,6 +84,7 @@ export default function TodoFormPage() {
         description: form.description.trim(),
         category: form.category,
         dueDate: form.dueDate || undefined,
+        user: isAdmin && form.user ? form.user : undefined,
       }
       if (isEditing) {
         await api.put(`/todos/${id}`, payload)
@@ -127,6 +148,25 @@ export default function TodoFormPage() {
                 error={errors.description}
                 rows={4}
               />
+
+              {isAdmin && (
+                <Input
+                  id="user"
+                  name="user"
+                  as="select"
+                  label="Assignee"
+                  value={form.user}
+                  onChange={handleChange}
+                  error={errors.user}
+                  options={[
+                    { value: '', label: 'Select User' },
+                    ...users.map((u) => ({
+                      value: u._id,
+                      label: `${u.username} (${u.email})`,
+                    })),
+                  ]}
+                />
+              )}
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <Input

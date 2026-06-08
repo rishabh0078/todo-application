@@ -19,6 +19,10 @@ const createTodoValidator = [
     .optional()
     .isISO8601()
     .withMessage('Due date must be a valid date'),
+  body('user')
+    .optional()
+    .isMongoId()
+    .withMessage('Invalid user ID'),
 ]
 
 const updateTodoValidator = [
@@ -45,6 +49,10 @@ const updateTodoValidator = [
     .optional()
     .isBoolean()
     .withMessage('Completed must be true or false'),
+  body('user')
+    .optional()
+    .isMongoId()
+    .withMessage('Invalid user ID'),
 ]
 
 module.exports = { createTodoValidator, updateTodoValidator }
