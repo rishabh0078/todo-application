@@ -8,7 +8,7 @@ const register = async (req, res) => {
     return res.status(400).json({ message: errors.array()[0].msg })
   }
 
-  const { email, username, password } = req.body
+  const { email, username, password, role } = req.body
 
   try {
     const existingUser = await User.findOne({ $or: [{ email }, { username }] })
@@ -17,7 +17,7 @@ const register = async (req, res) => {
       return res.status(400).json({ message: `${field} is already taken` })
     }
 
-    const user = await User.create({ email, username, password })
+    const user = await User.create({ email, username, password, role })
 
     res.status(201).json({ message: 'Account created successfully. Please sign in.' })
   } catch (err) {

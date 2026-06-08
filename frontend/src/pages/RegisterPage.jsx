@@ -10,7 +10,7 @@ export default function RegisterPage() {
   const { showToast } = useToast()
   const navigate = useNavigate()
 
-  const [form, setForm] = useState({ email: '', username: '', password: '' })
+  const [form, setForm] = useState({ email: '', username: '', password: '', role: 'user' })
   const [errors, setErrors] = useState({})
   const [apiError, setApiError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -107,6 +107,19 @@ export default function RegisterPage() {
             onChange={handleChange}
             error={errors.password}
             autoComplete="new-password"
+          />
+
+          <Input
+            id="role"
+            name="role"
+            as="select"
+            label="Role"
+            value={form.role}
+            onChange={handleChange}
+            options={[
+              { value: 'user', label: 'User' },
+              { value: 'admin', label: 'Admin' },
+            ]}
           />
 
           {apiError && (
